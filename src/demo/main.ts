@@ -1,7 +1,7 @@
+import '../styles/sankey.css';
 import { SankeyDiagram } from '../lib/Sankey';
 import type { SankeyData, SankeyNode, SankeyLink } from '../lib/types';
 import { dbSaveLayout, dbListLayouts, dbGetLayout, dbDeleteLayout } from '../lib/db';
-import '../styles/sankey.css';
 
 // Стартовые данные (если пользователь не загрузил CSV)
 const defaultData: SankeyData = {
@@ -29,7 +29,8 @@ const sankey = new SankeyDiagram(app, defaultData, {
   height: app.clientHeight,
   linkWidthScale: 2,
   draggable: true,
-  saveKey: 'sankey-ts-demo'
+  saveKey: 'sankey-ts-demo',
+  pinRightIds: ['Архив']   // всегда в самом правом слое
 });
 
 // ===== UI refs =====
@@ -53,8 +54,8 @@ const helpBtn = document.getElementById('helpBtn') as HTMLButtonElement;
 const helpModal = document.getElementById('helpModal') as HTMLDialogElement;
 const helpCloseBtn = document.getElementById('helpCloseBtn') as HTMLButtonElement;
 
-const importJsonBtn = document.getElementById('importJsonBtn') as HTMLButtonElement;
-const importJsonFile = document.getElementById('importJsonFile') as HTMLInputElement;
+const importJsonBtn = document.getElementById('importJsonBtn') as HTMLButtonElement | null;
+const importJsonFile = document.getElementById('importJsonFile') as HTMLInputElement | null;
 
 const toasts = document.getElementById('toasts')!;
 
@@ -108,25 +109,25 @@ deleteSelectedBtn.onclick = async () => {
 };
 
 // ===== Импорт JSON из файла =====
-importJsonBtn.onclick = () => importJsonFile.click();
-importJsonFile.onchange = async () => {
-  const file = importJsonFile.files?.[0];
-  if (!file) return;
-  try {
-    const text = await readFileText(file);
-    const snap = JSON.parse(text);
-    // Полный снапшот: nodes+links+options — подменит текущие данные
-    (sankey as any).loadLayout?.(snap);
-    // Сразу применим масштаб из снапшота (если есть)
-    scale.value = String((sankey as any).options?.linkWidthScale ?? scale.value);
-    scale.dispatchEvent(new Event('input'));
-    toast('Импорт JSON выполнен');
-  } catch (e: any) {
-    toast(`Ошибка импорта JSON: ${e?.message || e}`);
-  } finally {
-    importJsonFile.value = ''; // чтобы можно было снова выбрать тот же файл
-  }
-};
+if (importJsonBtn && importJsonFile) {
+  importJsonBtn.onclick = () => importJsonFile.click();
+  importJsonFile.onchange = async () => {
+    const file = importJsonFile.files?.[0];
+    if (!file) return;
+    try {
+      const text = await readFileText(file);
+      const snap = JSON.parse(text);
+      (sankey as any).loadLayout?.(snap);
+      scale.value = String((sankey as any).options?.linkWidthScale ?? scale.value);
+      scale.dispatchEvent(new Event('input'));
+      toast('Импорт JSON выполнен');
+    } catch (e: any) {
+      toast(`Ошибка импорта JSON: ${e?.message || e}`);
+    } finally {
+      importJsonFile.value = '';
+    }
+  };
+}
 
 // ===== Сброс и экспорт =====
 (document.getElementById('resetBtn') as HTMLButtonElement).onclick = () => {
@@ -269,17 +270,32 @@ function parseLinksCSV(text: string): SankeyLink[] {
   const need = ['source', 'target', 'value'];
   for (const k of need) if (!(k in hi)) throw new Error(`links.csv: нет колонки "${k}"`);
 
-  const links: SankeyLink[] = [];
+  // ---- АГРЕГАЦИЯ одинаковых пар source-target ----
+  const aggregated = new Map<string, SankeyLink>();
+
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     if (!r.length) continue;
+
     const source = r[hi.source]?.trim();
     const target = r[hi.target]?.trim();
     const value = Number(r[hi.value]);
-    if (!source || !target || !Number.isFinite(value)) continue;
     const color = hi.color !== undefined ? r[hi.color]?.trim() || undefined : undefined;
-    links.push({ source, target, value, color });
+
+    if (!source || !target || !Number.isFinite(value)) continue;
+
+    const key = `${source}|||${target}`;
+
+    if (aggregated.has(key)) {
+      const existing = aggregated.get(key)!;
+      existing.value += value; // суммируем повторяющиеся связи
+      // цвет оставляем как у первого
+    } else {
+      aggregated.set(key, { source, target, value, color });
+    }
   }
+
+  const links = Array.from(aggregated.values());
   if (!links.length) throw new Error('links.csv: не найдено валидных строк');
   return links;
 }
