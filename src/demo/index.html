@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sankey TS — Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script type="module" src="./main.ts"></script>
+    <link rel="stylesheet" href="../styles/sankey.css" />
+  <style>
+    html, body { height: 100%; margin: 0; }
+    .page { min-height: 100vh; display: flex; flex-direction: column; }
+    .main { position: relative; flex: 1 1 auto; min-height: 0; overflow: auto; }
+    #app { position: relative; height: 100%; min-height: 560px; }
+    .uploader { display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:8px 12px; background:#0b1220; color:#e2e8f0; border-bottom:1px solid rgba(255,255,255,0.08);}
+    .uploader small { opacity:.75; }
+    .kbd { font: 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; background:#d8dadc; border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:2px 6px; }
+  </style>
+
+  </head>
+  <body>
+    <div class="page">
+      <div class="toolbar" style="flex-wrap: wrap">
+        <div class="pill" title="Масштаб толщины линий (px на единицу value)">
+          Толщина потоков:
+          <input id="scale" type="range" min="0.5" max="6" step="0.1" value="2" />
+          <span id="scaleVal">2.0x</span>
+        </div>
+
+        <div class="pill" title="Сохранить текущую раскладку под именем">
+          <input id="layoutName" type="text" placeholder="Имя варианта" style="min-width:160px" />
+          <button id="saveAsBtn" class="btn">Сохранить как…</button>
+        </div>
+
+        <div class="pill" title="Выберите ранее сохранённый вариант">
+          <select id="layoutSelect" style="min-width:180px">
+            <option value="">— сохранённые варианты —</option>
+          </select>
+          <button id="loadSelectedBtn" class="btn">Загрузить</button>
+          <button id="deleteSelectedBtn" class="btn btn-danger" title="Удалить выбранный вариант">Удалить</button>
+        </div>
+
+        <div class="pill" title="Управление видом">
+          <button id="zoomOutBtn" class="btn" aria-label="Уменьшить масштаб">−</button>
+          <button id="fitBtn" class="btn" aria-label="Уместить в экран">Fit</button>
+          <button id="zoomInBtn" class="btn" aria-label="Увеличить масштаб">+</button>
+        </div>
+
+        <button id="resetBtn" class="btn" title="Пересчитать авторазмещение">Сброс</button>
+        <button id="exportBtn" class="btn" title="Экспорт текущей раскладки в JSON">Экспорт JSON</button>
+        <button id="helpBtn" class="btn btn-ghost" title="Справка (клавиша ?)">?</button>
+      </div>
+
+      <div class="uploader">
+        <div class="pill">
+          <label>links.csv:
+            <input id="linksFile" type="file" accept=".csv,text/csv" />
+          </label>
+        </div>
+        <div class="pill">
+          <label>nodes.csv (необязательно):
+            <input id="nodesFile" type="file" accept=".csv,text/csv" />
+          </label>
+        </div>
+        <button id="buildBtn" class="btn">Построить диаграмму</button>
+        <small>Форматы: links.csv — <code>source,target,value[,color]</code>; nodes.csv — <code>id[,label][,color][,x][,y][,width][,height]</code></small>
+      </div>
+
+      <div class="import-btn">
+        <button id="btn-import-json">📂 Импорт JSON</button>       
+      </div>
+      
+      <main class="main" aria-label="Область диаграммы">
+        <div id="app"></div>
+        <div class="panel">
+          <h3>Экспорт раскладки</h3>
+          <textarea id="exportBox" placeholder="Здесь появится JSON раскладки"></textarea>
+          <p style="opacity:.7; font-size:12px; margin-top:8px;">
+            Подсказка: двойной клик по узлу/связи — смена цвета. Колесо мыши — зум, перетаскивание фона — панорамирование.
+          </p>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-content">
+          <span>ⓘ Это демо Sankey на TypeScript. Управление: <span class="kbd">+</span>/<span class="kbd">-</span> — зум, <span class="kbd">F</span> — Fit, <span class="kbd">?</span> — справка.</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Тосты -->
+    <div id="toasts" class="toasts"></div>
+
+    <!-- Модал «Справка» -->
+    <dialog id="helpModal" class="modal">
+      <div class="modal-box">
+        <h3>Справка</h3>
+        <ul>
+          <li>Перетащите узлы мышью для позиционирования</li>
+          <li>Двойной клик по узлу/связи — смена цвета</li>
+          <li>Колесо над диаграммой — зум; перетаскивание фона — панорамирование</li>
+          <li>Сохранения: введите имя и нажмите <em>Сохранить как…</em></li>
+          <li>CSV: загрузите <strong>links.csv</strong> и (опционально) <strong>nodes.csv</strong>, затем «Построить диаграмму»</li>
+        </ul>
+        <h4>Горячие клавиши</h4>
+        <p><span class="kbd">?</span> Справка · <span class="kbd">+</span>/<span class="kbd">-</span> Зум · <span class="kbd">F</span> Fit · <span class="kbd">S</span> Сохранить как · <span class="kbd">L</span> Загрузить выбранное</p>
+        <div class="modal-actions">
+          <button id="helpCloseBtn" class="btn">Ок</button>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

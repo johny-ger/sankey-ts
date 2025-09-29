@@ -1,0 +1,229 @@
+.sankey {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+}
+
+.sankey .sankey-link {
+  transition: opacity 120ms ease, stroke-width 120ms ease;
+}
+
+.sankey .sankey-node rect {
+  stroke: rgba(255,255,255,0.2);
+  stroke-width: 1;
+}
+
+.sankey .sankey-node.dragging rect {
+  outline: 2px dashed rgba(255,255,255,0.5);
+  outline-offset: 2px;
+}
+
+.sankey .sankey-label {
+  fill: #e2e8f0;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.sankey { 
+  width: 100%; 
+  height: 100%; 
+  display: block; 
+  block-size: 100%; 
+}
+
+/* Сглаживание панорамирования/жестов */
+.sankey {
+  touch-action: none;   /* отключает жесты браузера на тачпадах/тачскрине */
+  user-select: none;    /* чтобы не выделялся текст при пэне */
+  -webkit-user-select: none;
+}
+
+/* ===== Toolbar ===== */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: #0b1220;
+  color: #e2e8f0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-wrap: wrap;
+}
+
+.toolbar input[type="range"] {
+  width: 160px;
+}
+
+.toolbar .pill {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar button,
+.toolbar .pill {
+  background: #111827;
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.toolbar button:hover { background: #1f2937; }
+
+.toolbar .btn { background:#111827; border:1px solid rgba(255,255,255,.12); }
+.toolbar .btn:hover { background:#1f2937; }
+.toolbar .btn-ghost { background:transparent; border-color:rgba(255,255,255,.2); }
+.btn-danger { border-color: rgba(239,68,68,.5) !important; }
+.btn-danger:hover { background:#7f1d1d !important; }
+
+/* Поля ввода и select */
+.toolbar input[type="text"],
+.toolbar select,
+.uploader input[type="file"] {
+  background: #0b1220;
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 8px 12px;
+  border-radius: 999px;
+  outline: none;
+}
+
+.toolbar select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #e5e7eb 50%), linear-gradient(135deg, #e5e7eb 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+}
+
+/* ===== Uploader row ===== */
+.uploader {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+  padding:8px 12px;
+  background:#0b1220;
+  color:#e2e8f0;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.uploader small { opacity:.75; }
+
+/* ===== Right panel ===== */
+.panel {
+  position: absolute;
+  right: 12px;
+  top: 58px;
+  width: 280px;
+  background: rgba(15, 23, 42, 0.8);
+  color: #e2e8f0;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  padding: 12px;
+}
+.panel h3 {
+  margin: 6px 0 10px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+.panel textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  background: #0b1220;
+  color: #e2e8f0;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+/* ===== Toasts ===== */
+.toasts {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 9999;
+}
+.toast {
+  background: rgba(15,23,42,.9);
+  color:#e2e8f0;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  padding:10px 12px;
+  box-shadow:0 6px 20px rgba(0,0,0,.4);
+  font-size: 13px;
+}
+
+/* ===== Modal ===== */
+.modal { border: none; padding: 0; background: transparent; }
+.modal::backdrop { background: rgba(0,0,0,.45); }
+.modal-box {
+  width: min(560px, calc(100vw - 24px));
+  margin: 10vh auto;
+  background: rgba(15,23,42,.95);
+  color:#e2e8f0;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: 16px;
+}
+.modal-box h3 { margin: 0 0 8px; }
+.modal-box h4 { margin: 10px 0 6px; font-size: 14px; opacity:.9; }
+.modal-box ul { margin: 0 0 10px 18px; padding:0; }
+.modal-actions { display:flex; justify-content:flex-end; gap:12px; margin-top:12px; }
+
+/* ===== Footer ===== */
+.footer{background:rgba(255,255,255,.06);backdrop-filter:blur(6px);border-top:1px solid rgba(255,255,255,.12);color:#e5e7eb;}
+.footer .footer-content{padding:10px 12px;display:flex;align-items:center;gap:12px;}
+
+
+/* ===== Layout stability ===== */
+.main { overflow: hidden; }
+#app { height: 100%; }
+.sankey { width: 100%; height: 100%; display: block; }
+
+/* ===== Layout stability (no scroll growth) ===== */
+html, body { height: 100%; }
+.page { min-height: 100vh; display: flex; flex-direction: column; }
+.main { flex: 1; min-height: 0; overflow: hidden; }
+#app { height: 100%; min-height: 0; }
+.sankey { width: 100%; height: 100%; display: block; }
+
+/* ===== Stable page layout ===== */
+html, body { height: 100%; }
+.page { min-height: 100vh; display: flex; flex-direction: column; }
+.main { flex: 1 1 auto; min-height: 0; overflow: auto; }
+#app { position: relative; height: 100%; min-height: 560px; }
+.sankey { width: 100%; height: 100%; display: block; }
+
+/* Кнопка импорта JSON — всегда в углу экрана */
+.import-btn {
+  position: fixed; /* ВАЖНО! теперь всегда привязана к окну браузера */
+  top: 10px;
+  right: 10px;
+  z-index: 200; /* выше всех остальных элементов */
+}
+
+#import-json,
+#btn-import-json {
+  padding: 8px 14px;
+  background: #111827;
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+#import-json:hover,
+#btn-import-json:hover {
+  background: #1f2937;
+}
