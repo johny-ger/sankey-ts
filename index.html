@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <title>Sankey TS — Demo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    html, body { height: 100%; margin: 0; }
-    .page { min-height: 100vh; display: flex; flex-direction: column; }
-    .main { position: relative; flex: 1 1 auto; min-height: 0; overflow: auto; }
-    #app { position: relative; height: 100%; min-height: 560px; }
-    .uploader { display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:8px 12px; background:#0b1220; color:#e2e8f0; border-bottom:1px solid rgba(255,255,255,0.08);}
-    .uploader small { opacity:.75; }
-    .kbd { font: 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; background:#d8dadc; border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:2px 6px; }
-  </style>
-
-    <script type="module" crossorigin src="/sankey-ts/assets/index-CRtsj2Fk.js"></script>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      .page { min-height: 100vh; display: flex; flex-direction: column; }
+      .main { position: relative; flex: 1 1 auto; min-height: 0; overflow: auto; }
+      #app { position: relative; height: 100%; min-height: 560px; }
+      .uploader { display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:8px 12px; background:#0b1220; color:#e2e8f0; border-bottom:1px solid rgba(255,255,255,0.08);}
+      .uploader small { opacity:.75; }
+      .kbd { font: 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; background:#d8dadc; border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:2px 6px; }
+      .toolbar-spacer { flex: 1 1 auto; }
+    </style>
+    <script type="module" crossorigin src="/sankey-ts/assets/index-D9TdRIH9.js"></script>
     <link rel="stylesheet" crossorigin href="/sankey-ts/assets/index-DkZmF6mS.css">
   </head>
   <body>
@@ -47,6 +47,12 @@
 
         <button id="resetBtn" class="btn" title="Пересчитать авторазмещение">Сброс</button>
         <button id="exportBtn" class="btn" title="Экспорт текущей раскладки в JSON">Экспорт JSON</button>
+
+        <div class="toolbar-spacer"></div>
+
+        <!-- Импорт JSON (кнопка в правом верхнем углу) -->
+        <button id="importJsonBtn" class="btn" title="Импортировать сохранённый JSON">Импорт JSON</button>
+        <input id="importJsonFile" type="file" accept="application/json,.json" hidden />
         <button id="helpBtn" class="btn btn-ghost" title="Справка (клавиша ?)">?</button>
       </div>
 
@@ -65,10 +71,6 @@
         <small>Форматы: links.csv — <code>source,target,value[,color]</code>; nodes.csv — <code>id[,label][,color][,x][,y][,width][,height]</code></small>
       </div>
 
-      <div class="import-btn">
-        <button id="btn-import-json">📂 Импорт JSON</button>       
-      </div>
-      
       <main class="main" aria-label="Область диаграммы">
         <div id="app"></div>
         <div class="panel">
@@ -100,6 +102,7 @@
           <li>Колесо над диаграммой — зум; перетаскивание фона — панорамирование</li>
           <li>Сохранения: введите имя и нажмите <em>Сохранить как…</em></li>
           <li>CSV: загрузите <strong>links.csv</strong> и (опционально) <strong>nodes.csv</strong>, затем «Построить диаграмму»</li>
+          <li>Импорт JSON: в правом верхнем углу — кнопка «Импорт JSON»</li>
         </ul>
         <h4>Горячие клавиши</h4>
         <p><span class="kbd">?</span> Справка · <span class="kbd">+</span>/<span class="kbd">-</span> Зум · <span class="kbd">F</span> Fit · <span class="kbd">S</span> Сохранить как · <span class="kbd">L</span> Загрузить выбранное</p>
