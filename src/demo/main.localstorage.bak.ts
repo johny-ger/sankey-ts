@@ -1,7 +1,35 @@
 import { SankeyDiagram } from '../lib/Sankey';
 import type { SankeyData, SankeyNode, SankeyLink } from '../lib/types';
-import { dbSaveLayout, dbListLayouts, dbGetLayout, dbDeleteLayout } from '../lib/db';
-import '../styles/sankey.css';
+
+// ===== Импорт раскладки из внешнего JSON-файла =====
+function importLayoutFromFile(diagram: SankeyDiagram) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.style.display = 'none';
+  document.body.appendChild(input);
+
+  input.addEventListener('change', () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target?.result as string);
+        diagram.loadLayout(json);
+        toast('Раскладка успешно загружена из JSON!');
+      } catch (err) {
+        toast('Ошибка загрузки JSON: ' + (err as Error).message);
+      }
+    };
+
+    reader.readAsText(file);
+    document.body.removeChild(input);
+  });
+
+  input.click();
+}
 
 // Стартовые данные (если пользователь не загрузил CSV)
 const defaultData: SankeyData = {
@@ -32,6 +60,12 @@ const sankey = new SankeyDiagram(app, defaultData, {
   saveKey: 'sankey-ts-demo'
 });
 
+// ===== Кнопка "Импорт JSON" =====
+const importBtn = document.getElementById('btn-import-json') as HTMLButtonElement;
+if (importBtn) {
+  importBtn.addEventListener('click', () => importLayoutFromFile(sankey));
+}
+
 // ===== UI refs =====
 const scale = document.getElementById('scale') as HTMLInputElement;
 const scaleVal = document.getElementById('scaleVal')!;
@@ -53,9 +87,6 @@ const helpBtn = document.getElementById('helpBtn') as HTMLButtonElement;
 const helpModal = document.getElementById('helpModal') as HTMLDialogElement;
 const helpCloseBtn = document.getElementById('helpCloseBtn') as HTMLButtonElement;
 
-const importJsonBtn = document.getElementById('importJsonBtn') as HTMLButtonElement;
-const importJsonFile = document.getElementById('importJsonFile') as HTMLInputElement;
-
 const toasts = document.getElementById('toasts')!;
 
 // ===== Толщина потоков =====
@@ -64,67 +95,41 @@ scale.addEventListener('input', () => {
   scaleVal.textContent = `${parseFloat(scale.value).toFixed(1)}x`;
 });
 
-// ===== Сохранения в IndexedDB =====
-saveAsBtn.onclick = async () => {
+// ===== Сохранения =====
+saveAsBtn.onclick = () => {
   const name = (layoutName.value || '').trim();
   if (!name) {
     toast('Введите имя варианта перед сохранением');
     layoutName.focus();
     return;
   }
-  const snapshot = (sankey as any).saveLayout?.(false) ?? JSON.parse(sankey.exportLayoutJSON());
-  await dbSaveLayout(name, snapshot);
-  await populateLayoutOptionsAsync(name);
-  toast(`Сохранено в БД: «${name}»`);
+  sankey.saveLayoutAs(name);
+  populateLayoutOptions(name);
+  toast(`Сохранено: «${name}»`);
 };
 
-loadSelectedBtn.onclick = async () => {
+loadSelectedBtn.onclick = () => {
   const name = layoutSelect.value;
   if (!name) {
     toast('Выберите вариант для загрузки');
     return;
   }
-  const snap = await dbGetLayout(name);
-  if (!snap) {
-    toast('Вариант не найден в БД');
-    return;
-  }
-  (sankey as any).loadLayout?.(snap);
+  sankey.loadLayoutByName(name);
+  scale.value = String((sankey as any).options?.linkWidthScale ?? scale.value);
   scale.dispatchEvent(new Event('input'));
-  toast(`Загружено из БД: «${name}»`);
+  toast(`Загружено: «${name}»`);
 };
 
-deleteSelectedBtn.onclick = async () => {
+deleteSelectedBtn.onclick = () => {
   const name = layoutSelect.value;
   if (!name) {
     toast('Выберите вариант для удаления');
     return;
   }
-  if (confirm(`Удалить сохранение "${name}" из БД?`)) {
-    await dbDeleteLayout(name);
-    await populateLayoutOptionsAsync('');
+  if (confirm(`Удалить сохранение "${name}"?`)) {
+    sankey.deleteLayout(name);
+    populateLayoutOptions('');
     toast(`Удалено: «${name}»`);
-  }
-};
-
-// ===== Импорт JSON из файла =====
-importJsonBtn.onclick = () => importJsonFile.click();
-importJsonFile.onchange = async () => {
-  const file = importJsonFile.files?.[0];
-  if (!file) return;
-  try {
-    const text = await readFileText(file);
-    const snap = JSON.parse(text);
-    // Полный снапшот: nodes+links+options — подменит текущие данные
-    (sankey as any).loadLayout?.(snap);
-    // Сразу применим масштаб из снапшота (если есть)
-    scale.value = String((sankey as any).options?.linkWidthScale ?? scale.value);
-    scale.dispatchEvent(new Event('input'));
-    toast('Импорт JSON выполнен');
-  } catch (e: any) {
-    toast(`Ошибка импорта JSON: ${e?.message || e}`);
-  } finally {
-    importJsonFile.value = ''; // чтобы можно было снова выбрать тот же файл
   }
 };
 
@@ -159,9 +164,9 @@ buildBtn.onclick = async () => {
   }
 };
 
-// ===== Инициализировать список сохранений (IndexedDB) =====
-async function populateLayoutOptionsAsync(selectName?: string) {
-  const names = await dbListLayouts();
+// ===== Инициализировать список сохранений =====
+function populateLayoutOptions(selectName?: string) {
+  const names = sankey.listLayouts();
   layoutSelect.innerHTML = '<option value="">— сохранённые варианты —</option>';
   for (const n of names) {
     const opt = document.createElement('option');
@@ -170,7 +175,7 @@ async function populateLayoutOptionsAsync(selectName?: string) {
     layoutSelect.appendChild(opt);
   }
 }
-populateLayoutOptionsAsync();
+populateLayoutOptions();
 
 // ===== Зум/Фит =====
 zoomInBtn.onclick = (e) => { sankey.zoomIn(1.2, { clientX: (e as MouseEvent).clientX, clientY: (e as MouseEvent).clientY }); };
@@ -193,8 +198,8 @@ function toast(msg: string, timeout = 2200) {
 // ===== Ресайз контейнера =====
 window.addEventListener('resize', () => {
   sankey.resize(app.clientWidth, app.clientHeight);
-  // @ts-ignore — приватный метод из демо
-  (sankey as any).compute?.();
+  // @ts-ignore — приватный метод вызываем в демо
+  sankey.compute?.();
   sankey.render();
 });
 
@@ -233,7 +238,7 @@ function parseCSV(text: string): string[][] {
     const ch = text[i];
     if (inQuotes) {
       if (ch === '"') {
-        if (text[i + 1] === '"') { cell += '"'; i++; }
+        if (text[i + 1] === '"') { cell += '"'; i++; } // escaped quote
         else { inQuotes = false; }
       } else {
         cell += ch;

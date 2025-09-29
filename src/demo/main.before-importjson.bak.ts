@@ -1,7 +1,6 @@
 import { SankeyDiagram } from '../lib/Sankey';
 import type { SankeyData, SankeyNode, SankeyLink } from '../lib/types';
 import { dbSaveLayout, dbListLayouts, dbGetLayout, dbDeleteLayout } from '../lib/db';
-import '../styles/sankey.css';
 
 // Стартовые данные (если пользователь не загрузил CSV)
 const defaultData: SankeyData = {
@@ -29,7 +28,7 @@ const sankey = new SankeyDiagram(app, defaultData, {
   height: app.clientHeight,
   linkWidthScale: 2,
   draggable: true,
-  saveKey: 'sankey-ts-demo'
+  saveKey: 'sankey-ts-demo' // используется только для локального снапшота/экспорта
 });
 
 // ===== UI refs =====
@@ -53,9 +52,6 @@ const helpBtn = document.getElementById('helpBtn') as HTMLButtonElement;
 const helpModal = document.getElementById('helpModal') as HTMLDialogElement;
 const helpCloseBtn = document.getElementById('helpCloseBtn') as HTMLButtonElement;
 
-const importJsonBtn = document.getElementById('importJsonBtn') as HTMLButtonElement;
-const importJsonFile = document.getElementById('importJsonFile') as HTMLInputElement;
-
 const toasts = document.getElementById('toasts')!;
 
 // ===== Толщина потоков =====
@@ -72,6 +68,7 @@ saveAsBtn.onclick = async () => {
     layoutName.focus();
     return;
   }
+  // Получаем полный снимок (узлы+связи+опции), но не пишем в localStorage
   const snapshot = (sankey as any).saveLayout?.(false) ?? JSON.parse(sankey.exportLayoutJSON());
   await dbSaveLayout(name, snapshot);
   await populateLayoutOptionsAsync(name);
@@ -89,7 +86,7 @@ loadSelectedBtn.onclick = async () => {
     toast('Вариант не найден в БД');
     return;
   }
-  (sankey as any).loadLayout?.(snap);
+  (sankey as any).loadLayout?.(snap); // Полная загрузка проекта из снапшота (без CSV)
   scale.dispatchEvent(new Event('input'));
   toast(`Загружено из БД: «${name}»`);
 };
@@ -104,27 +101,6 @@ deleteSelectedBtn.onclick = async () => {
     await dbDeleteLayout(name);
     await populateLayoutOptionsAsync('');
     toast(`Удалено: «${name}»`);
-  }
-};
-
-// ===== Импорт JSON из файла =====
-importJsonBtn.onclick = () => importJsonFile.click();
-importJsonFile.onchange = async () => {
-  const file = importJsonFile.files?.[0];
-  if (!file) return;
-  try {
-    const text = await readFileText(file);
-    const snap = JSON.parse(text);
-    // Полный снапшот: nodes+links+options — подменит текущие данные
-    (sankey as any).loadLayout?.(snap);
-    // Сразу применим масштаб из снапшота (если есть)
-    scale.value = String((sankey as any).options?.linkWidthScale ?? scale.value);
-    scale.dispatchEvent(new Event('input'));
-    toast('Импорт JSON выполнен');
-  } catch (e: any) {
-    toast(`Ошибка импорта JSON: ${e?.message || e}`);
-  } finally {
-    importJsonFile.value = ''; // чтобы можно было снова выбрать тот же файл
   }
 };
 
@@ -233,7 +209,7 @@ function parseCSV(text: string): string[][] {
     const ch = text[i];
     if (inQuotes) {
       if (ch === '"') {
-        if (text[i + 1] === '"') { cell += '"'; i++; }
+        if (text[i + 1] === '"') { cell += '"'; i++; } // escaped quote
         else { inQuotes = false; }
       } else {
         cell += ch;
