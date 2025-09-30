@@ -14,8 +14,8 @@
       .kbd { font: 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; background:#d8dadc; border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:2px 6px; }
       .toolbar-spacer { flex: 1 1 auto; }
     </style>
-    <script type="module" crossorigin src="/sankey-ts/assets/index-D9TdRIH9.js"></script>
-    <link rel="stylesheet" crossorigin href="/sankey-ts/assets/index-DkZmF6mS.css">
+    <script type="module" crossorigin src="/sankey-ts/assets/index-CRWG0I-B.js"></script>
+    <link rel="stylesheet" crossorigin href="/sankey-ts/assets/index-CbHOqLxK.css">
   </head>
   <body>
     <div class="page">
@@ -73,13 +73,20 @@
 
       <main class="main" aria-label="Область диаграммы">
         <div id="app"></div>
-        <div class="panel">
-          <h3>Экспорт раскладки</h3>
-          <textarea id="exportBox" placeholder="Здесь появится JSON раскладки"></textarea>
-          <p style="opacity:.7; font-size:12px; margin-top:8px;">
-            Подсказка: двойной клик по узлу/связи — смена цвета. Колесо мыши — зум, перетаскивание фона — панорамирование.
-          </p>
-        </div>
+          <div class="panel" id="exportPanel">
+            <div class="panel-header">
+              <h3>Экспорт раскладки</h3>
+              <div class="panel-actions">
+                <button id="downloadJsonBtn" class="btn" title="Скачать JSON-файл">Скачать JSON</button>
+                <button id="closePanelBtn" class="btn btn-ghost" title="Скрыть панель">×</button>
+              </div>
+            </div>
+
+            <textarea id="exportBox" placeholder="Здесь появится JSON раскладки"></textarea>
+            <p style="opacity:.7; font-size:12px; margin-top:8px;">
+              Подсказка: двойной клик по узлу/связи — смена цвета. Колесо мыши — зум, перетаскивание фона — панорамирование.
+            </p>
+          </div>
       </main>
 
       <footer class="footer">
