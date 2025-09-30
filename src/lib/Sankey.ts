@@ -11,7 +11,8 @@ import { wireZoomPan, zoomAt } from './core/panzoom';
  * но разнесённая по модулям: geometry, color, drag, panzoom.
  */
 export class SankeyDiagram {
-  private container: HTMLElement;
+  // Должен быть публичным, чтобы соответствовать PanZoomHost
+  public container: HTMLElement;
   public  svg: SVGSVGElement;
   private gLinks: SVGGElement;
   private gNodes: SVGGElement;
@@ -44,7 +45,9 @@ export class SankeyDiagram {
       defaultNodeColor: options.defaultNodeColor ?? '#4f46e5',
       defaultLinkColor: options.defaultLinkColor ?? '#94a3b8',
       draggable: options.draggable ?? true,
-      saveKey: options.saveKey ?? 'sankey-layout'
+      saveKey: options.saveKey ?? 'sankey-layout',
+      fixedLayers: options.fixedLayers ?? {},
+      pinRightIds: options.pinRightIds ?? []
     };
 
     // SVG без width/height — управляем через viewBox
@@ -212,7 +215,9 @@ export class SankeyDiagram {
       padding: this.options.padding,
       nodeGap: this.options.nodeGap,
       colGap: this.options.colGap,
-      linkWidthScale: this.options.linkWidthScale
+      linkWidthScale: this.options.linkWidthScale,
+      fixedLayers: this.options.fixedLayers,
+      pinRightIds: this.options.pinRightIds
     });
     this.positions = nodes;
   }
